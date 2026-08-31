@@ -4,18 +4,11 @@ Homebrew formulae for commandzero tools.
 
 ## Install
 
-The tap is private until the first `tq` release. Once it is public:
+Install the public tap:
 
 ```bash
 brew tap commandzero/tools
 brew install tq
-```
-
-Before the first tagged release, maintainers can install `tq` from the private
-repository with GitHub access:
-
-```bash
-brew install --HEAD commandzero/tools/tq
 ```
 
 ## Formulae
@@ -34,8 +27,8 @@ The bottle workflow produces these native packages:
 Intel macOS has no bottle and builds from source. The formula keeps Rust as a
 build dependency for that path.
 
-The checked-in formula is HEAD-only while `tq` is private. Add the tagged
-source URL, version, and SHA-256 before building the first bottles.
+The formula tracks the tagged `tq` source release and includes native bottle
+checksums after each bottle build.
 
 Copy `.env.example` to `.env`, configure both Linux SSH hosts, then run:
 
