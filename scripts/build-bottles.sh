@@ -14,9 +14,16 @@ if [[ -f "${ROOT_DIR}/.env" ]]; then
 fi
 
 : "${LINUX_X86_64_SSH_HOST:?Set LINUX_X86_64_SSH_HOST in .env}"
-: "${LINUX_ARM64_SSH_HOST:?Set LINUX_ARM64_SSH_HOST in .env}"
 : "${BOTTLE_ROOT_URL:?Set BOTTLE_ROOT_URL in .env}"
 : "${LINUX_PODMAN_IMAGE:=ghcr.io/homebrew/brew:main}"
+LINUX_ARM64_LOCAL_DOCKER="${LINUX_ARM64_LOCAL_DOCKER:-0}"
+if [[ "${LINUX_ARM64_LOCAL_DOCKER}" != 0 && "${LINUX_ARM64_LOCAL_DOCKER}" != 1 ]]; then
+  echo "LINUX_ARM64_LOCAL_DOCKER must be 0 or 1, got: ${LINUX_ARM64_LOCAL_DOCKER}" >&2
+  exit 1
+fi
+if [[ "${LINUX_ARM64_LOCAL_DOCKER}" != 1 ]]; then
+  : "${LINUX_ARM64_SSH_HOST:?Set LINUX_ARM64_SSH_HOST in .env or set LINUX_ARM64_LOCAL_DOCKER=1}"
+fi
 
 TAP="${HOMEBREW_TAP:-commandzero/tools}"
 if [[ ! "${TAP}" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
@@ -35,7 +42,11 @@ if [[ ! "${BOTTLE_ROOT_URL}" =~ ^https://[A-Za-z0-9._/-]+$ ]]; then
   echo "BOTTLE_ROOT_URL must be an HTTPS URL without query parameters." >&2
   exit 1
 fi
-for host in "${LINUX_X86_64_SSH_HOST}" "${LINUX_ARM64_SSH_HOST}"; do
+SSH_HOSTS=("${LINUX_X86_64_SSH_HOST}")
+if [[ "${LINUX_ARM64_LOCAL_DOCKER}" != 1 ]]; then
+  SSH_HOSTS+=("${LINUX_ARM64_SSH_HOST}")
+fi
+for host in "${SSH_HOSTS[@]}"; do
   if [[ ! "${host}" =~ ^[A-Za-z0-9_.@:-]+$ || "${host}" == -* ]]; then
     echo "Linux SSH host contains unsupported characters: ${host}" >&2
     exit 1
@@ -57,19 +68,28 @@ remote_dir_for() {
   printf '%s-%s' "${REMOTE_BASE_DIR}" "$1"
 }
 
+LOCAL_STAGING_DIR=""
+
+cleanup_remote_dir() {
+  local host="$1"
+  local platform="$2"
+  local remote_dir
+  remote_dir="$(remote_dir_for "${platform//\//-}")"
+  # Variables expand locally by design after validation above.
+  # shellcheck disable=SC2029
+  ssh "${host}" \
+    "if command -v podman >/dev/null 2>&1; then podman unshare rm -rf '${remote_dir}'; else rm -rf '${remote_dir}'; fi" \
+    >/dev/null 2>&1 || true
+}
+
 cleanup_remote() {
-  local host platform remote_dir
-  while IFS='|' read -r host platform; do
-    remote_dir="$(remote_dir_for "${platform//\//-}")"
-    # Variables expand locally by design after validation above.
-    # shellcheck disable=SC2029
-    ssh "${host}" \
-      "if command -v podman >/dev/null 2>&1; then podman unshare rm -rf '${remote_dir}'; else rm -rf '${remote_dir}'; fi" \
-      >/dev/null 2>&1 || true
-  done <<EOF
-${LINUX_X86_64_SSH_HOST}|linux/amd64
-${LINUX_ARM64_SSH_HOST}|linux/arm64
-EOF
+  cleanup_remote_dir "${LINUX_X86_64_SSH_HOST}" "linux/amd64"
+  if [[ "${LINUX_ARM64_LOCAL_DOCKER}" != 1 ]]; then
+    cleanup_remote_dir "${LINUX_ARM64_SSH_HOST}" "linux/arm64"
+  fi
+  if [[ -n "${LOCAL_STAGING_DIR}" ]]; then
+    rm -rf -- "${LOCAL_STAGING_DIR}"
+  fi
 }
 trap cleanup_remote EXIT
 
@@ -183,6 +203,60 @@ build_linux_bottles() {
   scp "${host}:${remote_dir}/*.json" "${OUT_DIR}/"
 }
 
+build_linux_arm64_local_docker_bottles() {
+  if [[ "$(uname -m)" != "arm64" ]]; then
+    echo "Local Linux arm64 bottles require Apple Silicon; use the SSH builder on other hosts." >&2
+    exit 1
+  fi
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "LINUX_ARM64_LOCAL_DOCKER=1 requires Docker Desktop." >&2
+    exit 1
+  fi
+
+  LOCAL_STAGING_DIR="$(mktemp -d -t homebrew-tools-arm64.XXXXXX)"
+  rsync -a --delete \
+    --exclude .git \
+    --exclude .env \
+    --exclude dist \
+    "${ROOT_DIR}/" "${LOCAL_STAGING_DIR}/"
+
+  docker run --rm --pull=missing --platform linux/arm64 \
+    -v "${LOCAL_STAGING_DIR}:/work" \
+    -v "${OUT_DIR}:/output" \
+    -w /work "${LINUX_PODMAN_IMAGE}" bash -lc '
+    set -euo pipefail
+    tap_prefix="$1"
+    bottle_root_url="$2"
+    shift 2
+    actual_machine="$(uname -m)"
+    if [[ "${actual_machine}" != "aarch64" ]]; then
+      echo "Expected aarch64, got ${actual_machine}" >&2
+      exit 1
+    fi
+    git config --global init.defaultBranch main
+    git -C /work init
+    git config --global --add safe.directory /work
+    git config --global user.name bottle-builder
+    git config --global user.email bottle-builder@example.invalid
+    git -C /work add .
+    git -C /work commit -m bottle-build-tap
+    brew tap --custom-remote "${tap_prefix}" file:///work
+    tap_dir="$(brew --repo "${tap_prefix}")"
+    cd "${tap_dir}"
+    for formula do
+      formula_name="${tap_prefix}/${formula}"
+      if brew list --formula "${formula_name}" >/dev/null 2>&1; then
+        brew uninstall --force "${formula_name}"
+      fi
+      brew install --build-bottle "${formula_name}"
+      brew bottle --json --no-rebuild --root-url "${bottle_root_url}" "${formula_name}"
+    done
+    cp ./*.bottle*.tar.gz ./*.json /output/
+  ' bash "${TAP_FORMULA_PREFIX}" "${BOTTLE_ROOT_URL}" "${FORMULAE[@]}"
+  rm -rf -- "${LOCAL_STAGING_DIR}"
+  LOCAL_STAGING_DIR=""
+}
+
 merge_bottle_blocks() {
   local json_files=()
   local formula
@@ -233,7 +307,11 @@ normalize_bottle_filenames() {
 
 build_macos_arm64_bottles
 build_linux_bottles "${LINUX_X86_64_SSH_HOST}" "linux/amd64" "x86_64"
-build_linux_bottles "${LINUX_ARM64_SSH_HOST}" "linux/arm64" "aarch64"
+if [[ "${LINUX_ARM64_LOCAL_DOCKER}" == 1 ]]; then
+  build_linux_arm64_local_docker_bottles
+else
+  build_linux_bottles "${LINUX_ARM64_SSH_HOST}" "linux/arm64" "aarch64"
+fi
 merge_bottle_blocks
 normalize_bottle_filenames
 

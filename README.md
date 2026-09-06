@@ -26,7 +26,7 @@ The bottle workflow produces these native packages:
 
 - macOS arm64, built locally on Apple Silicon
 - Linux x86_64, built on a native remote host
-- Linux arm64, built on a native remote host
+- Linux arm64, built on a native remote host or local ARM64 Docker
 
 For `tq`, Intel macOS has no bottle and builds from source. Its formula keeps Rust as a
 build dependency for that path.
@@ -34,7 +34,9 @@ build dependency for that path.
 The formula tracks the tagged `tq` source release and includes native bottle
 checksums after each bottle build.
 
-Copy `.env.example` to `.env`, configure both Linux SSH hosts, then run:
+Copy `.env.example` to `.env`, configure the x86_64 Linux SSH host and either
+the arm64 Linux SSH host or `LINUX_ARM64_LOCAL_DOCKER=1` on Apple Silicon with
+Docker Desktop, then run:
 
 ```bash
 scripts/build-bottles.sh
