@@ -21,7 +21,7 @@ brew install tless
   across Git repositories with a terminal UI and CLI. Version 0.1.0 installs
   prebuilt binaries for Linux amd64, Linux arm64, and macOS arm64 only.
 - [`tless`](https://github.com/commandzero/tless) views JSON, YAML, and TOON in
-  the terminal. Version 0.1.0 installs prebuilt binaries for Linux amd64,
+  the terminal. Version 0.1.1 installs prebuilt binaries for Linux amd64,
   Linux arm64, macOS Intel, and macOS arm64.
 
 ## Bottles
