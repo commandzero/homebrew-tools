@@ -1,28 +1,27 @@
 class Tless < Formula
   desc "Terminal viewer for JSON, YAML, and TOON"
   homepage "https://github.com/commandzero/tless"
-  version "0.1.2"
   license "MIT"
 
   on_macos do
     on_arm do
-      url "https://github.com/CommandZero/tless/releases/download/v0.1.2/tless-v0.1.2-aarch64-apple-darwin.tar.gz"
-      sha256 "20d16b127014ed6889f22a38855fd6b4765cf845d6b735c96ec3e00082e6d11d"
+      url "https://github.com/CommandZero/tless/releases/download/v0.1.3/tless-v0.1.3-aarch64-apple-darwin.tar.gz"
+      sha256 "816a3a4c9fb81ab0591286912092c896e28915ab2d612cee113c36c47885d504"
     end
     on_intel do
-      url "https://github.com/CommandZero/tless/releases/download/v0.1.2/tless-v0.1.2-x86_64-apple-darwin.tar.gz"
-      sha256 "eb819355d55edd57f133b50f05496c400eaaebf45c2ce963bb3275d2a9e90942"
+      url "https://github.com/CommandZero/tless/releases/download/v0.1.3/tless-v0.1.3-x86_64-apple-darwin.tar.gz"
+      sha256 "67899041af2d5150b7d567cca3c7cd187b175b1a9a21497568a944a1e0c37118"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/CommandZero/tless/releases/download/v0.1.2/tless-v0.1.2-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "e9cc942a18b2100fc6c9504179987be7f330b686313dd9e9ecdf44680dcc33ca"
+      url "https://github.com/CommandZero/tless/releases/download/v0.1.3/tless-v0.1.3-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "630f7e716ce359869eff29e567bf88649cfc9476f7c9034d9f804ae52e9e59c1"
     end
     on_intel do
-      url "https://github.com/CommandZero/tless/releases/download/v0.1.2/tless-v0.1.2-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "3353cf76aa2564fa1216c6b2156910cd45203c5cfa6744c6429937728ded3019"
+      url "https://github.com/CommandZero/tless/releases/download/v0.1.3/tless-v0.1.3-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "d718d5fecd1c6635ab4fec7db5f60e9bad9c89c2a0ad1c5e4ae792c304da2aef"
     end
   end
 
