@@ -11,6 +11,7 @@ brew tap commandzero/tools
 brew install tq
 brew install skillator
 brew install tless
+brew install tview
 ```
 
 ## Formulae
@@ -23,6 +24,10 @@ brew install tless
 - [`tless`](https://github.com/commandzero/tless) views JSON, YAML, and TOON in
   the terminal. Version 0.1.2 installs prebuilt binaries for Linux amd64,
   Linux arm64, macOS Intel, and macOS arm64.
+- [`tview`](https://github.com/commandzero/tview) browses CSV, JSON, NDJSON, and
+  SQLite data in the terminal. Version 0.1.0 includes saved views and clipboard
+  support, with archives for macOS 14+ arm64 and Ubuntu 24.04+ Linux amd64/arm64
+  (glibc 2.39+). Intel macOS and a source-build fallback are not supported.
 
 ## Bottles
 
@@ -54,3 +59,6 @@ Set `BOTTLE_FORMULAE=tq` to select a formula explicitly.
 
 Skillator installs archives from its GitHub release directly and does not use
 the bottle workflow. Intel macOS is not supported by its formula.
+
+Tview also installs product release archives directly and does not use the bottle
+workflow. Each archive includes the binary, license, and build provenance.
