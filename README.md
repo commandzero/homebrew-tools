@@ -25,7 +25,7 @@ brew install tview
   the terminal. Version 0.1.3 installs prebuilt binaries for Linux amd64,
   Linux arm64, macOS Intel, and macOS arm64.
 - [`tview`](https://github.com/commandzero/tview) browses CSV, JSON, NDJSON, and
-  SQLite data in the terminal. Version 0.1.0 includes saved views and clipboard
+  SQLite data in the terminal. Version 0.1.1 includes saved views and clipboard
   support, with archives for macOS 14+ arm64 and Ubuntu 24.04+ Linux amd64/arm64
   (glibc 2.39+). Intel macOS and a source-build fallback are not supported.
 
