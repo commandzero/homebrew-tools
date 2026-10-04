@@ -1,8 +1,8 @@
 class Tview < Formula
   desc "Terminal viewer for CSV, JSON, and SQLite data"
   homepage "https://github.com/commandzero/tview"
-  url "https://github.com/commandzero/tview/releases/download/v0.1.0/tview-v0.1.0-aarch64-apple-darwin.tar.gz"
-  sha256 "21203c803d50596b169b3e3362cfad8e2d218da610261a9adb01393905394387"
+  url "https://github.com/commandzero/tview/releases/download/v0.1.1/tview-v0.1.1-aarch64-apple-darwin.tar.gz"
+  sha256 "08fd1048143470f70d228a6d3109ca27c4d6877046f672fe319d1b7ff7546b63"
   license "MIT"
 
   on_macos do
@@ -12,12 +12,12 @@ class Tview < Formula
 
   on_linux do
     on_arm do
-      url "https://github.com/commandzero/tview/releases/download/v0.1.0/tview-v0.1.0-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "287948ecded1e9cb2970cf1f74e2515a50290bd6caf08e749c76e5ac615e943b"
+      url "https://github.com/commandzero/tview/releases/download/v0.1.1/tview-v0.1.1-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "80af8d6eaeac220e81f90f90a7ff92c639e233ffc04abea18f5859c5055c3bee"
     end
     on_intel do
-      url "https://github.com/commandzero/tview/releases/download/v0.1.0/tview-v0.1.0-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "412509117a38d1b28f159640bfcfa2d4092c517b2de2bfdd0dfcca9339b97ed1"
+      url "https://github.com/commandzero/tview/releases/download/v0.1.1/tview-v0.1.1-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "4fcdae51fc0864191707c6d816337f6f628b278408b6429ee0d2dbbb1959dbfb"
     end
   end
 
