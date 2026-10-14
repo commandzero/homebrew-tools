@@ -5,23 +5,23 @@ class Tless < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/CommandZero/tless/releases/download/v0.2.0/tless-v0.2.0-aarch64-apple-darwin.tar.gz"
-      sha256 "79cd3115d3a6b1307797c91b6e03c2f68e260d0ea478fd5ca737c7be3757590f"
+      url "https://github.com/CommandZero/tless/releases/download/v0.2.1/tless-v0.2.1-aarch64-apple-darwin.tar.gz"
+      sha256 "7379e1f438049dc92f11d9907422666c4d9f785c46b6e414d35e96fa52da13ce"
     end
     on_intel do
-      url "https://github.com/CommandZero/tless/releases/download/v0.2.0/tless-v0.2.0-x86_64-apple-darwin.tar.gz"
-      sha256 "ca0d1d33a2a4a428b46f040c115a0b8d3b552d92fccb73155d53ee5bed35f8e6"
+      url "https://github.com/CommandZero/tless/releases/download/v0.2.1/tless-v0.2.1-x86_64-apple-darwin.tar.gz"
+      sha256 "cc5b86dcb9d84895567d2f4fcd909c86385205b22c3c7034e761b3337136e2e4"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/CommandZero/tless/releases/download/v0.2.0/tless-v0.2.0-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "ef6082f238a08aa53473e257e68c9eda6ca58fa7ca12ac24e6676eaeb4c79f5d"
+      url "https://github.com/CommandZero/tless/releases/download/v0.2.1/tless-v0.2.1-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "3ee0085e8dd89a90657ee463c71fbdfc6d094970bf7f996e026d5c7bd4e843dc"
     end
     on_intel do
-      url "https://github.com/CommandZero/tless/releases/download/v0.2.0/tless-v0.2.0-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "23261626775528eb423d53d6714a9be91c3742f035ba1a1c420be6bef8fb93a3"
+      url "https://github.com/CommandZero/tless/releases/download/v0.2.1/tless-v0.2.1-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "68112740f7a8c87811132a1c496b716d4337a41526ba73e10c34114fb6dd7c55"
     end
   end
 
