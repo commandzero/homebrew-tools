@@ -1,0 +1,92 @@
+name: Build tq bottles
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["bottles/**"]
+    paths: [".github/workflows/tq-bottles.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  bottle:
+    name: Bottle / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            machine: arm64
+          - os: ubuntu-24.04
+            machine: x86_64
+          - os: ubuntu-24.04-arm
+            machine: aarch64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      BOTTLE_OUTPUT: ${{ github.workspace }}/bottles
+    steps:
+      - name: Set up native Homebrew tap
+        id: homebrew
+        uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
+        with:
+          stable: true
+      - name: Verify native build host
+        env:
+          EXPECTED_MACHINE: ${{ matrix.machine }}
+        run: |
+          test "$(uname -m)" = "$EXPECTED_MACHINE"
+          brew config
+      - name: Build and bottle the tagged source
+        working-directory: ${{ steps.homebrew.outputs.repository-path }}
+        run: |
+          brew install --build-bottle commandzero/tools/tq
+          mkdir -p "$BOTTLE_OUTPUT"
+          cd "$BOTTLE_OUTPUT"
+          brew bottle --json --no-rebuild \
+            --root-url https://github.com/commandzero/homebrew-tools/releases/download/bottles \
+            commandzero/tools/tq
+      - name: Pour and exercise the actual bottle
+        shell: bash
+        run: |
+          bottles=("$BOTTLE_OUTPUT"/tq--*.bottle.tar.gz)
+          test "${#bottles[@]}" -eq 1
+          test -f "${bottles[0]}"
+          brew uninstall commandzero/tools/tq
+          # Homebrew permits trusted local build artifacts only in developer mode.
+          HOMEBREW_DEVELOPER=1 brew install --force-bottle "${bottles[0]}"
+          brew test commandzero/tools/tq
+          binary="$(brew --prefix commandzero/tools/tq)/bin/tq"
+          "$binary" --version
+          actual=$(printf '"a\\u0001b"\n' | "$binary" -i toon -o json -c explode)
+          test "$actual" = '[97,1,98]'
+          brew info --json=v2 commandzero/tools/tq | ruby -rjson -e '
+            formula = JSON.parse(STDIN.read).fetch("formulae").fetch(0)
+            version = formula.fetch("versions").fetch("stable")
+            abort "Expected a poured bottle for #{version}" unless formula.fetch("installed").any? { |i| i.fetch("poured_from_bottle") && i.fetch("version") == version }
+            puts "Verified native bottle receipt for #{version}"
+          '
+      - name: Normalize published bottle filenames
+        if: always() && hashFiles('bottles/*.bottle.json') != ''
+        shell: bash
+        run: |
+          ruby -rjson -rfileutils -e '
+            ARGV.each do |path|
+              JSON.parse(File.read(path)).each_value do |metadata|
+                metadata.fetch("bottle").fetch("tags").each_value do |tag|
+                  source = File.join(File.dirname(path), tag.fetch("local_filename"))
+                  target = File.join(File.dirname(path), tag.fetch("filename"))
+                  FileUtils.mv(source, target) unless source == target
+                end
+              end
+            end
+          ' "$BOTTLE_OUTPUT"/*.bottle.json
+      - name: Retain candidate bottles and metadata
+        if: always() && hashFiles('bottles/*.bottle.json') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tq-bottle-${{ matrix.os }}
+          path: ${{ env.BOTTLE_OUTPUT }}/*
+          if-no-files-found: error

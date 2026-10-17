@@ -31,24 +31,37 @@ brew install tview
 
 ## Bottles
 
-The bottle workflow produces these native packages:
+Every `tq` release must publish matching native bottles before its formula is
+promoted:
 
-- macOS arm64, built locally on Apple Silicon
-- Linux x86_64, built on a native remote host
-- Linux arm64, built on a native remote host or local ARM64 Docker
+- macOS arm64 (`macos-15`)
+- Linux x86_64 (`ubuntu-24.04`)
+- Linux arm64 (`ubuntu-24.04-arm`)
 
 For `tq`, Intel macOS has no bottle and builds from source. Its formula keeps Rust as a
 build dependency for that path.
 
-The `tq` 0.5.0 formula follows TOON 4.4 and requires Rust 1.95 or newer.
-Until matching 0.5.0 bottles are built, it installs from the tagged source on
-each host; the previous 0.3.0 bottle checksums are not reused.
+The `tq` 0.5.0 formula follows TOON 4.4. Source builds require Rust 1.95 or
+newer; supported bottle targets must not fall back to compiling from source.
 
-The formula tracks the tagged `tq` source release and includes native bottle
-checksums after each bottle build.
+Run `.github/workflows/tq-bottles.yml` on the release formula branch. It builds
+the tagged source on native runners, pours each resulting bottle, runs the
+formula test and a TOON 4.4 escape check, and retains bottle archives and metadata.
+Only use artifacts from a successful run: artifacts retained after a failure
+are diagnostic evidence, not verified release packages.
 
-Copy `.env.example` to `.env`, configure the x86_64 Linux SSH host and either
-the arm64 Linux SSH host or `LINUX_ARM64_LOCAL_DOCKER=1` on Apple Silicon with
+Upload all three verified `*.bottle.tar.gz` files to the existing GitHub release
+named `bottles`, without replacing published assets. Merge the matching JSON
+metadata with `brew bottle --merge --write --no-commit`, then commit the formula
+checksums in a PR. The PR's `.github/workflows/bottle-install.yml` checks must
+pass on all three native targets: they install the published bottle, run
+`brew test`, and require a `poured_from_bottle` receipt. Source builds, product
+binary archives, missing bottle metadata, or stale checksums do not satisfy
+this release gate.
+
+For the alternative local/SSH builder, copy `.env.example` to `.env`, configure
+the x86_64 Linux SSH host and either the arm64 Linux SSH host or
+`LINUX_ARM64_LOCAL_DOCKER=1` on Apple Silicon with
 Docker Desktop, then run:
 
 ```bash
@@ -56,8 +69,8 @@ scripts/build-bottles.sh
 ```
 
 The script writes bottle archives and metadata to `dist/bottles`, then merges
-the bottle checksums into the formula. Upload the `*.bottle*.tar.gz` files to
-the GitHub release named `bottles`.
+the bottle checksums into the local formula. Publish and verify all bottles
+before promoting that formula, using the same PR installation gate above.
 
 Set `BOTTLE_FORMULAE=tq` to select a formula explicitly.
 

@@ -1,0 +1,37 @@
+name: Require tq bottles
+
+on:
+  pull_request:
+    paths:
+      - Formula/tq.rb
+      - .github/workflows/bottle-install.yml
+
+permissions:
+  contents: read
+
+jobs:
+  pour:
+    name: Bottle install / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+    steps:
+      - name: Set up candidate Homebrew tap
+        uses: Homebrew/actions/setup-homebrew@1f8e202ffddf94def7f42f6fa3a482e821489f9c # 2026.07.10.1
+        with:
+          stable: true
+      - name: Require the published bottle, never source fallback
+        run: |
+          brew install --force-bottle commandzero/tools/tq
+          brew test commandzero/tools/tq
+          brew info --json=v2 commandzero/tools/tq | ruby -rjson -e '
+            formula = JSON.parse(STDIN.read).fetch("formulae").fetch(0)
+            version = formula.fetch("versions").fetch("stable")
+            abort "Missing a poured bottle for #{version}" unless formula.fetch("installed").any? { |i| i.fetch("poured_from_bottle") && i.fetch("version") == version }
+            puts "Verified published bottle installation for #{version}"
+          '
