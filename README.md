@@ -40,6 +40,10 @@ The bottle workflow produces these native packages:
 For `tq`, Intel macOS has no bottle and builds from source. Its formula keeps Rust as a
 build dependency for that path.
 
+The `tq` 0.5.0 formula follows TOON 4.4 and requires Rust 1.95 or newer.
+Until matching 0.5.0 bottles are built, it installs from the tagged source on
+each host; the previous 0.3.0 bottle checksums are not reused.
+
 The formula tracks the tagged `tq` source release and includes native bottle
 checksums after each bottle build.
 
