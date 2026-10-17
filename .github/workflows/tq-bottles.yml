@@ -55,7 +55,8 @@ jobs:
           test "${#bottles[@]}" -eq 1
           test -f "${bottles[0]}"
           brew uninstall commandzero/tools/tq
-          brew install --force-bottle "${bottles[0]}"
+          # Homebrew permits trusted local build artifacts only in developer mode.
+          HOMEBREW_DEVELOPER=1 brew install --force-bottle "${bottles[0]}"
           brew test commandzero/tools/tq
           binary="$(brew --prefix commandzero/tools/tq)/bin/tq"
           "$binary" --version
@@ -68,6 +69,7 @@ jobs:
             puts "Verified native bottle receipt for #{version}"
           '
       - name: Normalize published bottle filenames
+        if: always() && hashFiles('bottles/*.bottle.json') != ''
         shell: bash
         run: |
           ruby -rjson -rfileutils -e '
@@ -81,7 +83,8 @@ jobs:
               end
             end
           ' "$BOTTLE_OUTPUT"/*.bottle.json
-      - name: Retain verified bottles and metadata
+      - name: Retain candidate bottles and metadata
+        if: always() && hashFiles('bottles/*.bottle.json') != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tq-bottle-${{ matrix.os }}
