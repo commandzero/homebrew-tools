@@ -5,23 +5,23 @@ class Tless < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/CommandZero/tless/releases/download/v0.2.1/tless-v0.2.1-aarch64-apple-darwin.tar.gz"
-      sha256 "7379e1f438049dc92f11d9907422666c4d9f785c46b6e414d35e96fa52da13ce"
+      url "https://github.com/CommandZero/tless/releases/download/v0.2.2/tless-v0.2.2-aarch64-apple-darwin.tar.gz"
+      sha256 "88c5f18cca6d169aaddbc1d81af43487304122b0f4a1b9bcec8a18a11541ef1e"
     end
     on_intel do
-      url "https://github.com/CommandZero/tless/releases/download/v0.2.1/tless-v0.2.1-x86_64-apple-darwin.tar.gz"
-      sha256 "cc5b86dcb9d84895567d2f4fcd909c86385205b22c3c7034e761b3337136e2e4"
+      url "https://github.com/CommandZero/tless/releases/download/v0.2.2/tless-v0.2.2-x86_64-apple-darwin.tar.gz"
+      sha256 "b6e7814525f9b1a00e0a9afed8dfd1ddcc72dd6b4afa453534e42a1176f830d4"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/CommandZero/tless/releases/download/v0.2.1/tless-v0.2.1-aarch64-unknown-linux-gnu.tar.gz"
-      sha256 "3ee0085e8dd89a90657ee463c71fbdfc6d094970bf7f996e026d5c7bd4e843dc"
+      url "https://github.com/CommandZero/tless/releases/download/v0.2.2/tless-v0.2.2-aarch64-unknown-linux-gnu.tar.gz"
+      sha256 "87cadad131f0b6ffda7e2689bfb2adaa5b7d93b45cc2512c92b471022ecc2a7d"
     end
     on_intel do
-      url "https://github.com/CommandZero/tless/releases/download/v0.2.1/tless-v0.2.1-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "68112740f7a8c87811132a1c496b716d4337a41526ba73e10c34114fb6dd7c55"
+      url "https://github.com/CommandZero/tless/releases/download/v0.2.2/tless-v0.2.2-x86_64-unknown-linux-gnu.tar.gz"
+      sha256 "d61ff0034d50f137e1615e32f82fa92e9a6f299bdb1b7130b61cedf4816c24ac"
     end
   end
 
@@ -31,5 +31,9 @@ class Tless < Formula
 
   test do
     assert_match version.to_s, shell_output("#{bin}/tless --version")
+    input = '{"release":true}'
+    json = pipe_output("#{bin}/tless --input-format json --output-format json -", input, 0)
+    assert_equal({ "release" => true }, JSON.parse(json))
+    assert_equal "release: true", pipe_output("#{bin}/tless --input-format json -", input, 0).strip
   end
 end
